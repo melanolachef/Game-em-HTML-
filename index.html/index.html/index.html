@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labirinto de Segurança</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #eee;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: #16213e;
+            border: 4px solid #0f3460;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #0f3460;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: #00fff5;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px #0f3460;
+            margin-bottom: 10px;
+        }
+
+        .company {
+            color: #ff6b6b;
+            font-size: 16px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: #0f3460;
+            border: 2px solid #00fff5;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00fff5;
+        }
+
+        .scenario {
+            background: #0f3460;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #00fff5;
+        }
+
+        .scenario-title {
+            color: #ff6b6b;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .scenario-text {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .choice-btn {
+            background: #1a1a2e;
+            color: #00fff5;
+            border: 3px solid #00fff5;
+            padding: 15px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: #00fff5;
+            color: #1a1a2e;
+            transform: translateX(5px);
+        }
+
+        .result {
+            margin: 20px 0;
+            padding: 20px;
+            border: 3px solid;
+            display: none;
+        }
+
+        .result.success {
+            background: rgba(0, 255, 100, 0.1);
+            border-color: #00ff64;
+            color: #00ff64;
+        }
+
+        .result.failure {
+            background: rgba(255, 50, 50, 0.1);
+            border-color: #ff3232;
+            color: #ff3232;
+        }
+
+        .next-btn {
+            background: #00fff5;
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .next-btn:hover {
+            background: #00d4cc;
+        }
+
+        .final-result {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .final-score {
+            font-size: 48px;
+            color: #00fff5;
+            margin: 20px 0;
+        }
+
+        .final-message {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+
+        .restart-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 20px;
+        }
+
+        .restart-btn:hover {
+            background: #ff5252;
+        }
+
+        .pixel-decoration {
+            text-align: center;
+            color: #0f3460;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⬛ Labirinto de Segurança ⬛</h1>
+            <div class="company">EMPRESA: TECHNOVA</div>
+            <div class="pixel-decoration">▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">PONTOS</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">FASE</div>
+                <div class="stat-value" id="stage">1/10</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">STATUS</div>
+                <div class="stat-value" id="status">🟢 ATIVO</div>
+            </div>
+        </div>
+
+        <div id="game-content"></div>
+
+        <div class="final-result" id="final-result">
+            <div class="final-score" id="final-score"></div>
+            <div class="final-message" id="final-message"></div>
+            <button class="restart-btn" onclick="restartGame()">▶ REINICIAR MISSÃO</button>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = [
+            {
+                title: "FASE 1: O DESAFIO INICIAL",
+                text: "A TechNova sofreu tentativas de invasão. O servidor está exposto à internet. Qual é o primeiro passo?",
+                choices: [
+                    { text: "A) Publicar o sistema direto na nuvem, sem restrições", points: -1, result: "❌ VAZAMENTO DE DADOS! Você ignorou os riscos básicos de segurança." },
+                    { text: "B) Fazer uma análise de riscos antes da publicação", points: 2, result: "✅ EXCELENTE! Você identificou vulnerabilidades e ganhou um ESCUDO DE PREVENÇÃO." }
+                ]
+            },
+            {
+                title: "FASE 2: POLÍTICAS DE ACESSO",
+                text: "A equipe solicita acesso total aos servidores para trabalhar mais rápido. Como proceder?",
+                choices: [
+                    { text: "A) Conceder acesso irrestrito para ganhar tempo", points: -1, result: "❌ FALHA CRÍTICA! Credenciais expostas e contas comprometidas." },
+                    { text: "B) Criar política de senhas, perfis e controle de acesso", points: 2, result: "✅ BOM TRABALHO! O controle de acesso reduziu o risco interno." }
+                ]
+            },
+            {
+                title: "FASE 3: AUDITORIA E NORMAS",
+                text: "Um cliente exige comprovação de conformidade com normas de segurança. O que fazer?",
+                choices: [
+                    { text: "A) Ignorar normas, já temos antivírus instalado", points: -3, result: "❌ PENALIDADE! Não conformidade resultou em multa e vazamento." },
+                    { text: "B) Implementar controles baseados na ISO 27001 e LGPD", points: 2, result: "✅ PERFEITO! Você reforçou a governança e ganhou um SELO DE CONFORMIDADE." }
+                ]
+            },
+            {
+                title: "FASE 4: DEFESA DE PERÍMETRO",
+                text: "Tráfego suspeito está vindo do exterior. Como proteger a rede?",
+                choices: [
+                    { text: "A) Abrir todas as portas para facilitar a comunicação", points: -3, result: "❌ INVASÃO TOTAL! O hacker explorou a porta 22 e dominou o sistema." },
+                    { text: "B) Configurar firewall e IDS para análise e bloqueio", points: 2, result: "✅ ATAQUE BLOQUEADO! Alerta detectado e ameaça neutralizada." }
+                ]
+            },
+            {
+                title: "FASE 5: ENGENHARIA SOCIAL",
+                text: "Um e-mail de 'fatura urgente' chegou ao departamento financeiro. Qual a ação?",
+                choices: [
+                    { text: "A) Permitir que o funcionário abra o anexo", points: -3, result: "❌ RANSOMWARE DETECTADO! O servidor foi criptografado." },
+                    { text: "B) Treinar a equipe sobre phishing e ameaças", points: 2, result: "✅ GOLPE IDENTIFICADO! A equipe evitou o ataque com sucesso." }
+                ]
+            },
+            {
+                title: "FASE 6: SEGURANÇA WEB",
+                text: "O site da empresa usa formulários sem validação de entrada. Como proceder?",
+                choices: [
+                    { text: "A) Ignorar, ninguém vai tentar invadir", points: -3, result: "❌ SQL INJECTION! O banco de dados foi roubado completamente." },
+                    { text: "B) Implementar filtros e proteção WAF", points: 2, result: "✅ SITE PROTEGIDO! WAF e validações implementadas com sucesso." }
+                ]
+            },
+            {
+                title: "FASE 7: PROTEÇÃO DE DADOS",
+                text: "Dados de clientes estão sendo armazenados no servidor. Como garantir a segurança?",
+                choices: [
+                    { text: "A) Armazenar em texto simples para facilitar acesso", points: -3, result: "❌ DADOS VAZADOS! Multa pesada da LGPD aplicada." },
+                    { text: "B) Criptografar dados com chaves seguras", points: 2, result: "✅ DADOS SEGUROS! Confidencialidade e confiança mantidas." }
+                ]
+            },
+            {
+                title: "FASE 8: MONITORAMENTO",
+                text: "O sistema de detecção (IDS) está reportando anomalias na rede. O que fazer?",
+                choices: [
+                    { text: "A) Ignorar o alerta, pode ser falso positivo", points: -3, result: "❌ ATAQUE ESCALADO! Os serviços foram paralisados completamente." },
+                    { text: "B) Acionar o plano de resposta a incidentes", points: 2, result: "✅ INCIDENTE CONTROLADO! Ambiente restaurado com sucesso." }
+                ]
+            },
+            {
+                title: "FASE 9: BACKUP E RECUPERAÇÃO",
+                text: "É necessário implementar uma estratégia de backup. Qual a melhor abordagem?",
+                choices: [
+                    { text: "A) Fazer backup local apenas, é mais barato", points: -1, result: "❌ RISCO ELEVADO! Um incidente pode destruir tudo." },
+                    { text: "B) Implementar backup 3-2-1 com testes regulares", points: 2, result: "✅ RESILIÊNCIA GARANTIDA! Dados protegidos contra desastres." }
+                ]
+            },
+            {
+                title: "FASE 10: ATUALIZAÇÃO CRÍTICA",
+                text: "Uma vulnerabilidade crítica foi descoberta no sistema. Como agir?",
+                choices: [
+                    { text: "A) Adiar a atualização para não interromper serviços", points: -1, result: "❌ EXPLORADO! A vulnerabilidade foi usada contra você." },
+                    { text: "B) Aplicar o patch imediatamente em janela de manutenção", points: 2, result: "✅ SISTEMA ATUALIZADO! Vulnerabilidade corrigida a tempo." }
+                ]
+            }
+        ];
+
+        let currentStage = 0;
+        let totalScore = 0;
+
+        function displayScenario() {
+            if (currentStage >= scenarios.length) {
+                showFinalResult();
+                return;
+            }
+
+            const scenario = scenarios[currentStage];
+            const content = document.getElementById('game-content');
+            
+            content.innerHTML = `
+                <div class="scenario">
+                    <div class="scenario-title">${scenario.title}</div>
+                    <div class="scenario-text">${scenario.text}</div>
+                    <div class="choices">
+                        ${scenario.choices.map((choice, index) => `
+                            <button class="choice-btn" onclick="makeChoice(${index})">
+                                ${choice.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="result" id="result"></div>
+                    <button class="next-btn" id="next-btn" onclick="nextStage()">▶ PRÓXIMA FASE</button>
+                </div>
+            `;
+
+            document.getElementById('stage').textContent = `${currentStage + 1}/10`;
+        }
+
+        function makeChoice(choiceIndex) {
+            const scenario = scenarios[currentStage];
+            const choice = scenario.choices[choiceIndex];
+            
+            totalScore += choice.points;
+            document.getElementById('score').textContent = totalScore;
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result ' + (choice.points > 0 ? 'success' : 'failure');
+            resultDiv.textContent = choice.result;
+            resultDiv.style.display = 'block';
+
+            document.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
+            document.getElementById('next-btn').style.display = 'block';
+
+            if (choice.points < 0) {
+                document.getElementById('status').textContent = '🔴 ALERTA';
+            }
+        }
+
+        function nextStage() {
+            currentStage++;
+            document.getElementById('status').textContent = '🟢 ATIVO';
+            displayScenario();
+        }
+
+        function showFinalResult() {
+            document.getElementById('game-content').style.display = 'none';
+            const finalDiv = document.getElementById('final-result');
+            finalDiv.style.display = 'block';
+
+            document.getElementById('final-score').textContent = `${totalScore} PONTOS`;
+
+            let message, color;
+            if (totalScore >= 12) {
+                message = "🏆 EMPRESA PROTEGIDA!\nVocê é um excelente Analista de Segurança!";
+                color = "#00ff64";
+            } else if (totalScore >= 8) {
+                message = "⚠️ ANALISTA EM FORMAÇÃO\nContinue estudando para melhorar!";
+                color = "#ffaa00";
+            } else {
+                message = "💀 EMPRESA COMPROMETIDA\nÉ necessário revisar os conceitos de segurança.";
+                color = "#ff3232";
+            }
+
+            document.getElementById('final-message').textContent = message;
+            document.getElementById('final-message').style.color = color;
+        }
+
+        function restartGame() {
+            currentStage = 0;
+            totalScore = 0;
+            document.getElementById('score').textContent = '0';
+            document.getElementById('status').textContent = '🟢 ATIVO';
+            document.getElementById('game-content').style.display = 'block';
+            document.getElementById('final-result').style.display = 'none';
+            displayScenario();
+        }
+
+        displayScenario();
+    </script>
+</body>
+</html>
